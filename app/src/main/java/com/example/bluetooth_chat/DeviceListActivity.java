@@ -2,9 +2,13 @@ package com.example.bluetooth_chat;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import java.util.Set;
 
 public class DeviceListActivity extends AppCompatActivity {
     //paired devices list
@@ -14,6 +18,7 @@ public class DeviceListActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapterPairedDevices,adapterAvailableDevices;
 
     //bluetooth adapter can be used to get the list of paired devices
+    private BluetoothAdapter bluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,18 @@ public class DeviceListActivity extends AppCompatActivity {
 
         listPairedDevices.setAdapter(adapterPairedDevices);
         listAvailableDevices.setAdapter(adapterAvailableDevices);
+
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        //get all the paired devices
+        //Return the set of BluetoothDevice objects that are bonded (paired) to the local adapter.
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+
+        if(pairedDevices!=null && pairedDevices.size() > 0){
+            for(BluetoothDevice device : pairedDevices){
+                //fill the adapter
+                adapterPairedDevices.add(device.getName() + "\n" + device.getAddress());
+            }
+        }
     }
 
 }

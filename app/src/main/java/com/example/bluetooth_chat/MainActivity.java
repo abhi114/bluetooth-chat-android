@@ -78,6 +78,10 @@ public class MainActivity extends AppCompatActivity {
             //int: Application specific request code to match with a result reported to ActivityCompat.OnRequestPermissionsResultCallback.onRequestPermissionsResult
             // These permissions must be requested in your manifest
             ActivityCompat.requestPermissions(MainActivity.this,new String[] {Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_PERMISSION_REQUEST);
+        }else{
+            //if the permission is granted
+            Intent intent   = new Intent(MainActivity.this,DeviceListActivity.class);
+            startActivity(intent);
         }
     }
 
