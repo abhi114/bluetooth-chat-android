@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Menu;
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         //getItemId - Return the identifier for this menu item. The identifier can not be changed after the menu is created.
         switch (item.getItemId()){
             case R.id.menu_search_devices:
-                Toast.makeText(this,"Clicked Search Devices",Toast.LENGTH_SHORT).show();
+                checkPermissions();
                 return true;
 
             case R.id.menu_enable_bluetooth:
@@ -87,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
             // or PackageManager.PERMISSION_DENIED. Never null.
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 //if the permission is granted
+                Intent intent = new Intent(this,DeviceListActivity.class);
+                startActivity(intent);
 
 
             }else{
@@ -105,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         MainActivity.this.finish();
                     }
-                }).create();
+                }).show();
             }
         }else {
             //if it is some other request
