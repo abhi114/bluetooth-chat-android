@@ -122,10 +122,21 @@ public class MainActivity extends AppCompatActivity {
 
     //to enable bluetooth
     private void enableBluetooth() {
-        if(bluetoothAdapter.isEnabled()){
-            Toast.makeText(this, "Bluetooth already enabled", Toast.LENGTH_SHORT).show();
-        }else{
+        if(!bluetoothAdapter.isEnabled()){
+            //Toast.makeText(this, "Bluetooth already enabled", Toast.LENGTH_SHORT).show();
             bluetoothAdapter.enable();
+        }
+        //if our device is not already visible to other devices we will make it visible
+        //The Bluetooth scan mode determines if the local adapter is connectable and/or discoverable from remote Bluetooth devices.
+        //indicates that both inquiry scan and page scan are enabled on the local Bluetooth adapter.
+        // Therefore this device is both discoverable and connectable from remote Bluetooth devices.
+        if(bluetoothAdapter.getScanMode() != bluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE){
+            //This issues a request to enable the system's discoverable mode without having to navigate to the Settings app,
+            // which would stop your own app.
+            Intent discoveryIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            //give extra time for
+            discoveryIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,300);
+            startActivity(discoveryIntent);
         }
     }
 }
