@@ -13,9 +13,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Set;
@@ -56,6 +58,24 @@ public class DeviceListActivity extends AppCompatActivity {
         //get all the paired devices
         //Return the set of BluetoothDevice objects that are bonded (paired) to the local adapter.
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+
+        //on click listener for our list views
+        listPairedDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //we are getting the name and the address that we have shown to the user
+                //it is a view so we have to type cast it to textView first
+                String info = ((TextView)view).getText().toString();
+                //the address is of 17 letters
+                String address = info.substring(info.length() -17);
+
+                Intent intent = new Intent();
+                intent.putExtra("deviceAddress",address);
+                //Call this to set the result that your activity will return to its caller.
+                setResult(RESULT_OK,intent);
+                finish();
+            }
+        });
 
         if(pairedDevices!=null && pairedDevices.size() > 0){
             for(BluetoothDevice device : pairedDevices){

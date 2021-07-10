@@ -1,6 +1,7 @@
 package com.example.bluetooth_chat;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     //to provide functionality like to swithc on/off the bluetooth, list of all the paired devices
     private BluetoothAdapter bluetoothAdapter;
     private final int LOCATION_PERMISSION_REQUEST = 101;
+    private final int SELECT_DEVICE = 102; //request code
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     //initialize the bluetooth adapter
     private void initBluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        //it means the device dosent have an bluetooth adapter
+        //it means the device dose not have an bluetooth adapter
         if(bluetoothAdapter == null){
             Toast.makeText(this,"no bluetooth found",Toast.LENGTH_SHORT).show();
         }
@@ -81,7 +83,8 @@ public class MainActivity extends AppCompatActivity {
         }else{
             //if the permission is granted
             Intent intent   = new Intent(MainActivity.this,DeviceListActivity.class);
-            startActivity(intent);
+            //to get back the result of an the selected device
+            startActivityForResult(intent,SELECT_DEVICE);
         }
     }
 
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 //if the permission is granted
                 Intent intent = new Intent(this,DeviceListActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent,SELECT_DEVICE);
 
 
             }else{
@@ -118,6 +121,18 @@ public class MainActivity extends AppCompatActivity {
             //if it is some other request
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    //the data returned from the devicelist activity will be managed here
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
+        if(requestCode == SELECT_DEVICE && resultCode == RESULT_OK){
+            String address = data.getStringExtra("deviceAddress");
+            Toast.makeText(this, address, Toast.LENGTH_SHORT).show();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     //to enable bluetooth
