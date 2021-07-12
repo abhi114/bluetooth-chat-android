@@ -13,8 +13,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Switch;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +25,46 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter bluetoothAdapter;
     private final int LOCATION_PERMISSION_REQUEST = 101;
     private final int SELECT_DEVICE = 102; //request code
+
+    public static final int MESSAGE_STATE_CHANGED = 0;
+    public static final int MESSAGE_READ = 1;
+    public static final int MESSAGE_WRITE = 2;
+    public static final int MESSAGE_DEVICE_NAME = 3;
+    public static final int MESSAGE_TOAST = 4;
+
+    public static final String DEVICE_NAME = "deviceName" ; //key to get the device name
+    public static final String TOAST = "toast";
+    private String connectedDevice;
+
+    //Callback interface you can use when
+    // instantiating a Handler to avoid having to implement your own subclass of Handler.
+    //Now, Handler provides a way to communicate with Looper. Handler sends Runnable/Message object on Looper,
+    // providing a way to execute code on a particular thread from another thread.
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        //Subclasses must implement this to receive messages.
+        //message - Defines a message containing a description and arbitrary data object that can be sent to a Handler.
+        public boolean handleMessage(@NonNull Message msg) {
+            switch (msg.what){//User-defined message code so that the recipient can identify what this message is about.
+                case MESSAGE_STATE_CHANGED:
+                    break;
+                case MESSAGE_READ:
+                    break;
+                case MESSAGE_WRITE:
+                    break;
+                case MESSAGE_DEVICE_NAME:
+                    //Obtains a Bundle of arbitrary data associated with this event
+                    connectedDevice = msg.getData().getString(DEVICE_NAME);
+                    Toast.makeText(MainActivity.this, connectedDevice, Toast.LENGTH_SHORT).show();
+                    break;
+                case MESSAGE_TOAST:
+                    Toast.makeText(MainActivity.this, msg.getData().getString(TOAST), Toast.LENGTH_SHORT).show();
+                    break;
+
+            }
+            return false;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
