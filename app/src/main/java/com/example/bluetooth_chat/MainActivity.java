@@ -26,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private final int LOCATION_PERMISSION_REQUEST = 101;
     private final int SELECT_DEVICE = 102; //request code
 
+    //instance of the chat utility
+    private ChatUtils chatUtils;
+
     public static final int MESSAGE_STATE_CHANGED = 0;
     public static final int MESSAGE_READ = 1;
     public static final int MESSAGE_WRITE = 2;
@@ -33,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int MESSAGE_TOAST = 4;
 
     public static final String DEVICE_NAME = "deviceName" ; //key to get the device name
-    public static final String TOAST = "toast";
+    public static final String TOAST = "toast"; //key
     private String connectedDevice;
 
     //Callback interface you can use when
@@ -47,6 +50,22 @@ public class MainActivity extends AppCompatActivity {
         public boolean handleMessage(@NonNull Message msg) {
             switch (msg.what){//User-defined message code so that the recipient can identify what this message is about.
                 case MESSAGE_STATE_CHANGED:
+                    //state changed send by the chatUtils
+                    switch (msg.arg1){
+                        case ChatUtils.STATE_NONE:
+                            setState("Not Connected");
+                            break;
+                        case ChatUtils.STATE_LISTEN:
+                            setState("Not Connected");
+                            break;
+                        case ChatUtils.STATE_CONNECTING:
+                            setState("Connecting....");
+                            break;
+                        case ChatUtils.STATE_CONNECTED:
+                            setState("Connected" + connectedDevice);
+                            break;
+
+                    }
                     break;
                 case MESSAGE_READ:
                     break;
@@ -66,11 +85,18 @@ public class MainActivity extends AppCompatActivity {
         }
     });
 
+    //to reflect the states
+    private void setState(CharSequence subTitle){
+        //we are showing a subtitle in our action bar according to the state
+        getSupportActionBar().setSubtitle(subTitle);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initBluetooth();
+        chatUtils = new ChatUtils(MainActivity.this,handler);
     }
 
     //initialize the bluetooth adapter
