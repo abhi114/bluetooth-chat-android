@@ -55,6 +55,19 @@ public class ChatUtils {
 
     private synchronized void stop(){}
 
+    //this will be called from the main activity and will be start all the working of the chat-utils
+    public void connect(BluetoothDevice device){
+        if(state == STATE_CONNECTING){
+            //we will stop the connection and will restart it
+            connectThread.cancel();
+            connectThread = null;
+        }
+        connectThread = new ConnectThread(device);
+        connectThread.start();
+
+        setState(STATE_CONNECTING);
+    }
+
     //thread which will handle all our connectivity
     //Thread class provide constructors and methods to create and perform operations on a thread.
     private class ConnectThread extends Thread{
@@ -109,7 +122,7 @@ public class ChatUtils {
             synchronized (ChatUtils.this){
                 connectThread = null;
             }
-            connect(device);
+            connected(device);
         }
 
         public void cancel(){
@@ -138,10 +151,21 @@ public class ChatUtils {
         ChatUtils.this.start();
     }
 
-    private synchronized void connect(BluetoothDevice device){
+    private synchronized void connected(BluetoothDevice device){
         //now we need close all the connected threads because we have already got the connected device
         if(connectThread != null){
                 connectThread.cancel();
+                connectThread = null;
         }
+        //send the device name
+        Message message = handler.obtainMessage(MainActivity.MESSAGE_DEVICE_NAME);
+        Bundle bundle = new Bundle();
+        bundle.putString(MainActivity.DEVICE_NAME,device.getName());
+        message.setData(bundle);
+        handler.sendMessage(message);
+
+        //set the state to connected
+        setState(STATE_CONNECTED);
+
     }
 }
