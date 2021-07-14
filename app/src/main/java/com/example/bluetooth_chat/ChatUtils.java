@@ -1,6 +1,8 @@
 package com.example.bluetooth_chat;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
@@ -16,10 +18,15 @@ public class ChatUtils {
     //In android Handler is mainly used to update the main thread from
     // background thread or other than main thread.
     private final android.os.Handler handler;
+    //bluetooth adapter
+    private BluetoothAdapter bluetoothAdapter;
 
     private ConnectThread connectThread;
 
+    private AcceptThread acceptThread;
+
     private final UUID APP_UUID = UUID.fromString("05067dec-e350-11eb-ba80-0242ac130004");
+    private final String APP_NAME = "BluetoothChatApp";
 
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
@@ -31,6 +38,9 @@ public class ChatUtils {
         this.context = context;
         this.handler = handler;
         state = STATE_NONE;
+
+        //Get a handle to the default local Bluetooth adapter.
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     }
 
@@ -51,9 +61,30 @@ public class ChatUtils {
         handler.obtainMessage(MainActivity.MESSAGE_STATE_CHANGED,state,-1).sendToTarget();
     }
 
-    private synchronized void start(){}
+    private synchronized void start(){
+        //check if there is any instance of the connecting thread
+        if(connectThread!=null){
+            connectThread.cancel();
+            connectThread = null;
+        }
+        if(acceptThread == null){
+            acceptThread = new AcceptThread();
+            acceptThread.start();
+        }
+        setState(STATE_LISTEN);
+    }
 
-    private synchronized void stop(){}
+    public synchronized void stop(){
+        if(connectThread!= null){
+            connectThread.cancel();
+            connectThread = null;
+        }
+        if(acceptThread != null){
+            acceptThread.cancel();
+            acceptThread = null;
+        }
+        setState(STATE_NONE);
+    }
 
     //this will be called from the main activity and will be start all the working of the chat-utils
     public void connect(BluetoothDevice device){
@@ -66,6 +97,75 @@ public class ChatUtils {
         connectThread.start();
 
         setState(STATE_CONNECTING);
+    }
+
+    //now we have to add a thread which will accept these connections
+    private class AcceptThread extends Thread{
+        //A listening Bluetooth socket.
+        private BluetoothServerSocket serverSocket;
+
+        public AcceptThread(){
+            //create a temporary server socket
+            BluetoothServerSocket tmp = null;
+            try {
+                //A remote device connecting to this socket will be authenticated and
+                // communication on this socket will be encrypted.
+                //The system will also register a Service Discovery Protocol (SDP) record with the local
+                // SDP server containing the specified UUID, service name, and auto-assigned channel.
+                //service name for SDP record
+                tmp = bluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME,APP_UUID);
+            }catch (IOException e){
+                Log.e("Accept-Constructor",e.toString());
+
+            }
+            //if the above code gets executed without throwing any exceptions
+            serverSocket =tmp;
+        }
+        //here we will try to connect the serverSocet
+        public void run(){
+            BluetoothSocket socket = null;
+            try{
+                //After the listening BluetoothServerSocket is created,
+                // call accept() to listen for incoming connection requests.
+                // This call will block until a connection is established,
+                // at which point, it will return a BluetoothSocket to manage the connection.
+                socket = serverSocket.accept();
+            }catch (IOException e){
+                Log.e("ACCEPT - RUn",e.toString());
+                //if exception is there we will try to close our serve socket
+                try{
+                    //Closing the BluetoothServerSocket will not close any BluetoothSocket received from accept().
+                    serverSocket.close();
+                }catch (IOException e1){
+                    Log.e("ACCEPT-CLOSE",e.toString());
+                }
+            }
+            //if accept was successful
+            if(socket!=null){
+                switch (state){
+                    case STATE_LISTEN:
+                    case STATE_CONNECTING:
+                        connect(socket.getRemoteDevice());
+                        break;
+                    case STATE_NONE:
+                    case STATE_CONNECTED:
+                        try{
+                            socket.close();
+                        }catch (IOException e){
+                            Log.e("ACCEPT-CLOSE-SOCKET",e.toString());
+                        }
+                        break;
+                }
+            }
+        }
+        public void cancel(){
+            try{
+                serverSocket.close();
+            }catch (IOException e){
+                Log.e("CLOSE-SERVER-SOCKET",e.toString());
+            }
+        }
+
     }
 
     //thread which will handle all our connectivity

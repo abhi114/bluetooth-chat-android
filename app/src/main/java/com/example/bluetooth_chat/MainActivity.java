@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private final int LOCATION_PERMISSION_REQUEST = 101;
     private final int SELECT_DEVICE = 102; //request code
 
+
     //instance of the chat utility
     private ChatUtils chatUtils;
 
@@ -198,7 +199,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
         if(requestCode == SELECT_DEVICE && resultCode == RESULT_OK){
+            //it will get the address of the device which is selected
             String address = data.getStringExtra("deviceAddress");
+            //and this will get the bluetooth deivce object of the device which is selected to get to connection
+            //Get a BluetoothDevice object for the given Bluetooth hardware address.
+            chatUtils.connect(bluetoothAdapter.getRemoteDevice(address));
             Toast.makeText(this, address, Toast.LENGTH_SHORT).show();
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -221,6 +226,14 @@ public class MainActivity extends AppCompatActivity {
             //give extra time for
             discoveryIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,300);
             startActivity(discoveryIntent);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(chatUtils!=null){
+            chatUtils.stop();
         }
     }
 }
